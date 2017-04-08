@@ -51,6 +51,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import snail.SRService;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -61,9 +62,13 @@ import java.io.OutputStreamWriter;
  * SegmentRoute by snail.
  */
 @Component(immediate = true)
-public class SegmentRoute {
+@Service
+public class SegmentRoute implements SRService{
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected SRService srService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -90,25 +95,30 @@ public class SegmentRoute {
         //注册应用
         appId = coreService.registerApplication("SR");
 
-        System.out.println("SR Started");
-        this.testLinks();
+        print("SR Started");
+
     }
 
     @Deactivate
     protected void deactivate() {
-        System.out.println("SR Stopped");
+        print("SR Stopped");
     }
 
+    @Override
+    public void SR(){
+        this.testLinks();
+    }
 
     public void testLinks(){
         Iterable<Link> links = linkService.getLinks();
         try{
             this.writeLoggerToFile("/home/snail/testLog/links", links.toString()+"\n");
         }catch(IOException e){
-            System.out.println(e.toString());
+            print(e.toString());
         }
     }
 
+    //将一串String写入文件
     public void writeLoggerToFile(String file, String conent) throws IOException {
         FileOutputStream FOS = new FileOutputStream(file, true);
         OutputStreamWriter OSW = new OutputStreamWriter(FOS);
@@ -128,4 +138,9 @@ public class SegmentRoute {
             }
         }
     }
+
+    private void print(String s){
+        System.out.println(s);
+    }
+
 }
