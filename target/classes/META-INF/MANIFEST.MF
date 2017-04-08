@@ -1,0 +1,30 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1491617837070
+Build-Jdk: 1.8.0_66
+Built-By: snail
+Bundle-Description: ONOS OSGi bundle archetype
+Bundle-ManifestVersion: 2
+Bundle-Name: SR
+Bundle-SymbolicName: snail.SR
+Bundle-Version: 1.0.0
+Created-By: Apache Maven Bundle Plugin
+Export-Package: snail;uses:="org.onosproject.core,org.onosproject.net.fl
+ ow,org.onosproject.net.flowobjective,org.onosproject.net.host,org.onosp
+ roject.net.link,org.onosproject.net.topology";version="1.0.0"
+Import-Package: org.onosproject.core;version="[1.3,2)",org.onosproject.n
+ et.flow;version="[1.3,2)",org.onosproject.net.flowobjective;version="[1
+ .3,2)",org.onosproject.net.host;version="[1.3,2)",org.onosproject.net.l
+ ink;version="[1.3,2)",org.onosproject.net.topology;version="[1.3,2)",or
+ g.slf4j
+Require-Capability: osgi.service;effective:=active;filter:="(objectClass
+ =org.onosproject.net.flow.FlowRuleService)",osgi.service;effective:=act
+ ive;filter:="(objectClass=org.onosproject.net.host.HostService)",osgi.s
+ ervice;effective:=active;filter:="(objectClass=org.onosproject.net.topo
+ logy.TopologyService)",osgi.service;effective:=active;filter:="(objectC
+ lass=org.onosproject.net.link.LinkService)",osgi.service;effective:=act
+ ive;filter:="(objectClass=org.onosproject.core.CoreService)",osgi.servi
+ ce;effective:=active;filter:="(objectClass=org.onosproject.net.flowobje
+ ctive.FlowObjectiveService)",osgi.ee;filter:="(&(osgi.ee=JavaSE)(versio
+ n=1.8))"
+Service-Component: OSGI-INF/snail.SegmentRoute.xml
+Tool: Bnd-2.3.0.201405100607
