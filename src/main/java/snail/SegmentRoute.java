@@ -50,7 +50,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.onosproject.snail.SRService;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
