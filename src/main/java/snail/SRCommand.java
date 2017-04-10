@@ -17,6 +17,7 @@ package snail;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.snail.SRService;
 
 /**
  * Sample Apache Karaf CLI command
@@ -27,7 +28,6 @@ public class SRCommand extends AbstractShellCommand {
 
     //formatted string for output to CLI
     private static final String FMT = "%s";
-
     private SRService srService;
 
     @Override

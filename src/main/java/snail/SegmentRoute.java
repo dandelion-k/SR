@@ -50,8 +50,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import snail.SRService;
+import org.onosproject.snail.SRService;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -66,9 +65,6 @@ import java.io.OutputStreamWriter;
 public class SegmentRoute implements SRService{
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected SRService srService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -106,13 +102,13 @@ public class SegmentRoute implements SRService{
 
     @Override
     public void SR(){
-        this.testLinks();
+        testLinks();
     }
 
     public void testLinks(){
         Iterable<Link> links = linkService.getLinks();
         try{
-            this.writeLoggerToFile("/home/snail/testLog/links", links.toString()+"\n");
+            writeLoggerToFile("/home/snail/testLog/links", links.toString()+"\n");
         }catch(IOException e){
             print(e.toString());
         }

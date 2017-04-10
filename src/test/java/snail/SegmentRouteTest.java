@@ -38,8 +38,8 @@ public class SegmentRouteTest {
         segmentRoute.deactivate();
     }
 
-    @Test
-    public void basics() {
-    }
+//    @Test
+//    public void basics() {
+//    }
 
 }

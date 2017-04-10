@@ -2,10 +2,9 @@
     <scr:component immediate="true" name="snail.SegmentRoute" activate="activate" deactivate="deactivate">
         <implementation class="snail.SegmentRoute"/>
         <service servicefactory="false">
-            <provide interface="snail.SRService"/>
+            <provide interface="org.onosproject.snail.SRService"/>
         </service>
         <property name="service.pid" value="snail.SegmentRoute"/>
-        <reference name="srService" interface="snail.SRService" cardinality="1..1" policy="static" bind="bindSrService" unbind="unbindSrService"/>
         <reference name="coreService" interface="org.onosproject.core.CoreService" cardinality="1..1" policy="static" bind="bindCoreService" unbind="unbindCoreService"/>
         <reference name="hostService" interface="org.onosproject.net.host.HostService" cardinality="1..1" policy="static" bind="bindHostService" unbind="unbindHostService"/>
         <reference name="topologyService" interface="org.onosproject.net.topology.TopologyService" cardinality="1..1" policy="static" bind="bindTopologyService" unbind="unbindTopologyService"/>
