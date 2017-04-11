@@ -79,11 +79,14 @@ public class SegmentRoute implements SRService{
     protected LinkService linkService;
 
     private ApplicationId appId;
+    private ApplicationId defaultAppId;
 
     @Activate
     protected void activate() {
         //注册应用
         appId = coreService.registerApplication("SR");
+        defaultAppId = coreService.getAppId((short)1);
+//        flowRuleService.removeFlowRulesById(defaultAppId);
         print("SR Started!");
 
     }
@@ -97,7 +100,9 @@ public class SegmentRoute implements SRService{
     @Override
     public void SR(){
         //testLinks();
-        //testInstallRule();
+        testInstallRule();
+        //testInstallRule1();
+        //testInstallRule2();
         //testIterable();
         //testHost();
         //testPair();
@@ -106,32 +111,66 @@ public class SegmentRoute implements SRService{
 
     private void installRules(){
         jxl.Workbook readwb = null;
-        String inPath = "/home/snail/Applications/SR/testnewroutes4.xls";
+        String inPath = "/home/snail/Applications/SR/segments3.xls";
         Iterable<Link> links = linkService.getLinks();
         Map<Pair<ConnectPoint,ConnectPoint>,long[]> linksMap = Links2Map(links);
+        Map<Pair<Integer,Integer>,Integer> labelMap = new HashMap<Pair<Integer,Integer>,Integer>();
         try{
             InputStream instream = new FileInputStream(inPath);
             readwb = Workbook.getWorkbook(instream);
 
             // Sheet的下标是从0开始
-            Sheet readsheet = readwb.getSheet(1);
+            Sheet singelSegmentSheet = readwb.getSheet(0);
+            labelMap = dealSingelSegment(singelSegmentSheet);
 
-            // 获取Sheet表中所包含的总行数
-            int rsRows = NumberOfRows(readsheet);
-            for(int i=1;i<rsRows;i++){
-//                Route route = routeGenerator(readsheet,linksMap,i);
-//                String[] IP = IPGenerator(readsheet,i);
-//                int label = i+1;
-//                labelMap.put(route.getId(),label);
-//                installHeadRule(route,label,IP);
-            }
-//            installOtherRules(labelMap,linksMap,readwb);
-            print("All flows added successfully!!");
+            Sheet pathSheet = readwb.getSheet(1);
+            dealPath(pathSheet,labelMap,linksMap);
         }catch(Exception e){
             e.printStackTrace();
         }finally {
             readwb.close();
         }
+    }
+
+    //给每个分段分配一个MPLS Label值
+    private Map<Pair<Integer,Integer>,Integer> dealSingelSegment(Sheet sheet){
+        // 获取Sheet表中所包含的总行数
+        int rows = NumberOfRows(sheet);
+        Map<Pair<Integer,Integer>,Integer> labelMap = new HashMap<Pair<Integer,Integer>,Integer>();
+        for(int i=1;i<rows;i++){
+            int label = i+1;
+            Cell[] row = sheet.getRow(i);
+            labelMap.put(new Pair<>(Integer.parseInt(row[0].getContents()),Integer.parseInt(row[1].getContents())),label);
+        }
+        return labelMap;
+    }
+
+    private void dealPath(Sheet sheet,Map<Pair<Integer,Integer>,Integer> labelMap,Map<Pair<ConnectPoint,ConnectPoint>,long[]> linksMap){
+        int rows = NumberOfRows(sheet);
+        for(int i=1;i<rows;i++){
+            Cell[] row = sheet.getRow(i);
+
+        }
+
+        print("All flows added successfully!!");
+    }
+
+    private void installIngressRule(){
+        //压入所有标签
+        //转发
+    }
+
+    private void installMidRules(){
+        //转发
+    }
+
+    private void installTailRules(){
+        //弹出
+        //转发
+    }
+
+    private void installEgressRules(){
+        //弹出
     }
 
     private Map<Pair<ConnectPoint,ConnectPoint>,long[]> Links2Map(Iterable<Link> links){
@@ -169,8 +208,8 @@ public class SegmentRoute implements SRService{
 
     public void testInstallRule(){
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchIPSrc(IpPrefix.valueOf("192.168.0.1/24"))
-                .matchIPDst(IpPrefix.valueOf("192.168.1.1/24"));
+        selectorBuilder.matchIPSrc(IpPrefix.valueOf("10.0.3.0/24"))
+                .matchIPDst(IpPrefix.valueOf("10.0.5.0/24"));
         TrafficTreatment trafficTreatment = DefaultTrafficTreatment.builder()
                 .setMpls(MplsLabel.mplsLabel(3))
                 .pushMpls()
@@ -178,9 +217,33 @@ public class SegmentRoute implements SRService{
                 .pushMpls()
                 .setMpls(MplsLabel.mplsLabel(5))
                 .pushMpls()
-                .setMpls(MplsLabel.mplsLabel(6))
-                .pushMpls()
-                //.setOutput(PortNumber.portNumber("1"))
+                .setOutput(PortNumber.portNumber("2"))
+                .build();
+        ForwardingObjective forwardingObjective = DefaultForwardingObjective.builder()
+                .withSelector(selectorBuilder.build())
+                .withTreatment(trafficTreatment)
+                .withPriority(10)  //数字越小优先级越高
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .fromApp(appId)
+                .makeTemporary(10)
+                .add();
+
+        try {
+            flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000002"),forwardingObjective);
+        }catch (Exception e){
+            print(e.toString());
+        }
+
+    }
+
+    public void testInstallRule1(){
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(3));
+        TrafficTreatment trafficTreatment = DefaultTrafficTreatment.builder()
+                .popMpls()
+                .popMpls()
+                .popMpls()
+                .setOutput(PortNumber.portNumber("4"))
                 .build();
         ForwardingObjective forwardingObjective = DefaultForwardingObjective.builder()
                 .withSelector(selectorBuilder.build())
@@ -188,12 +251,35 @@ public class SegmentRoute implements SRService{
                 .withPriority(10)
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .fromApp(appId)
+                .makeTemporary(10)
+                .add();
+
+        try {
+            flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000004"),forwardingObjective);
+        }catch (Exception e){
+            print(e.toString());
+        }
+
+    }
+
+    public void testInstallRule2(){
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(3));
+        TrafficTreatment trafficTreatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber("2"))
+                .build();
+        ForwardingObjective forwardingObjective = DefaultForwardingObjective.builder()
+                .withSelector(selectorBuilder.build())
+                .withTreatment(trafficTreatment)
+                .withPriority(11)  //数字越优先级越高
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .fromApp(appId)
                 .makeTemporary(0)
                 .makePermanent()
                 .add();
 
         try {
-            flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000006"),forwardingObjective);
+            flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000010"),forwardingObjective);
         }catch (Exception e){
             print(e.toString());
         }
@@ -222,7 +308,7 @@ public class SegmentRoute implements SRService{
     }
 
     //将一串String写入文件
-    public void writeLoggerToFile(String file, String conent) throws IOException {
+    private void writeLoggerToFile(String file, String conent) throws IOException {
         FileOutputStream FOS = new FileOutputStream(file, true);
         OutputStreamWriter OSW = new OutputStreamWriter(FOS);
         BufferedWriter out = new BufferedWriter(OSW);
@@ -242,7 +328,7 @@ public class SegmentRoute implements SRService{
         }
     }
 
-    public int NumberOfRows(Sheet readsheet){
+    private int NumberOfRows(Sheet readsheet){
         int number=0;
         int rows=readsheet.getRows();
         for(int i=0;i<rows;i++){

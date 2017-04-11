@@ -1,14 +1,18 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1491828852084
+Bnd-LastModified: 1491917795322
 Build-Jdk: 1.8.0_66
 Built-By: snail
 Bundle-Blueprint: OSGI-INF/blueprint/shell-config.xml
+Bundle-ClassPath: .,jxl-2.6.12.jar
 Bundle-Description: ONOS OSGi bundle archetype
 Bundle-ManifestVersion: 2
 Bundle-Name: SR
-Bundle-SymbolicName: snail.SR
+Bundle-SymbolicName: SR
 Bundle-Version: 1.0.0
 Created-By: Apache Maven Bundle Plugin
+Embed-Dependency: jxl
+Embedded-Artifacts: jxl-2.6.12.jar;g="net.sourceforge.jexcelapi";a="jxl"
+ ;v="2.6.12"
 Export-Package: snail;uses:="org.apache.karaf.shell.commands,org.onospro
  ject.cli,org.onosproject.core,org.onosproject.net.flow,org.onosproject.
  net.flowobjective,org.onosproject.net.host,org.onosproject.net.link,org
