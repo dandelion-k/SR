@@ -72,25 +72,31 @@
         </dependency>
 
         <dependency>
-      <groupId>org.onosproject</groupId>
-      <artifactId>onos-cli</artifactId>
-      <version>${onos.version}</version>
-      <scope>provided</scope>
-    </dependency>
+          <groupId>org.onosproject</groupId>
+          <artifactId>onos-cli</artifactId>
+          <version>${onos.version}</version>
+          <scope>provided</scope>
+        </dependency>
 
         <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.core</artifactId>
-      <version>4.3.1</version>
-      <scope>provided</scope>
-    </dependency>
+          <groupId>org.osgi</groupId>
+          <artifactId>org.osgi.core</artifactId>
+          <version>4.3.1</version>
+          <scope>provided</scope>
+        </dependency>
 
         <dependency>
-      <groupId>org.apache.karaf.shell</groupId>
-      <artifactId>org.apache.karaf.shell.console</artifactId>
-      <version>3.0.3</version>
-      <scope>provided</scope>
-    </dependency>
+          <groupId>org.apache.karaf.shell</groupId>
+          <artifactId>org.apache.karaf.shell.console</artifactId>
+          <version>3.0.3</version>
+          <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>jexcelapi</groupId>
+            <artifactId>jxl</artifactId>
+            <version>2.4.2</version>
+        </dependency>
     </dependencies>
 
     <build>

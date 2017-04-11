@@ -33,7 +33,7 @@ public class SRCommand extends AbstractShellCommand {
     protected void execute() {
         srService = get(SRService.class);
         srService.SR();
-        print("%s", "Finished!/n");
+        print("%s", "Finished!");
     }
 
 }
