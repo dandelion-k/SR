@@ -37,6 +37,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.Link;
+import org.onosproject.net.Device;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -100,7 +101,7 @@ public class SegmentRoute implements SRService{
     @Override
     public void SR(){
         //testLinks();
-        testInstallRule();
+        //testInstallRule();
         //testInstallRule1();
         //testInstallRule2();
         //testIterable();
@@ -208,15 +209,16 @@ public class SegmentRoute implements SRService{
 
     public void testInstallRule(){
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchIPSrc(IpPrefix.valueOf("10.0.3.0/24"))
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPSrc(IpPrefix.valueOf("10.0.3.0/24"))
                 .matchIPDst(IpPrefix.valueOf("10.0.5.0/24"));
         TrafficTreatment trafficTreatment = DefaultTrafficTreatment.builder()
+                .pushMpls()
                 .setMpls(MplsLabel.mplsLabel(3))
                 .pushMpls()
                 .setMpls(MplsLabel.mplsLabel(4))
                 .pushMpls()
-                .setMpls(MplsLabel.mplsLabel(5))
-                .pushMpls()
+                .setMpls(MplsLabel.mplsLabel(5))  //最后添加的是活动标签,一个Treatment添加标签不能超过3个
                 .setOutput(PortNumber.portNumber("2"))
                 .build();
         ForwardingObjective forwardingObjective = DefaultForwardingObjective.builder()
@@ -225,7 +227,7 @@ public class SegmentRoute implements SRService{
                 .withPriority(10)  //数字越小优先级越高
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .fromApp(appId)
-                .makeTemporary(10)
+                .makeTemporary(100)
                 .add();
 
         try {
@@ -238,12 +240,13 @@ public class SegmentRoute implements SRService{
 
     public void testInstallRule1(){
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(3));
+        selectorBuilder.matchEthType(Ethernet.MPLS_UNICAST)
+                .matchMplsLabel(MplsLabel.mplsLabel(5));
         TrafficTreatment trafficTreatment = DefaultTrafficTreatment.builder()
-                .popMpls()
-                .popMpls()
-                .popMpls()
-                .setOutput(PortNumber.portNumber("4"))
+                .popMpls(Ethernet.MPLS_UNICAST)
+                .popMpls(Ethernet.MPLS_UNICAST)
+                .popMpls(Ethernet.TYPE_IPV4)    //弹出最后一个标签的时候类型应该是IPv4
+                .setOutput(PortNumber.portNumber("4"))   //这里的出口不要按wireshark的写,要在onos中查看主机状态查看对应端口号
                 .build();
         ForwardingObjective forwardingObjective = DefaultForwardingObjective.builder()
                 .withSelector(selectorBuilder.build())
@@ -251,35 +254,11 @@ public class SegmentRoute implements SRService{
                 .withPriority(10)
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .fromApp(appId)
-                .makeTemporary(10)
+                .makeTemporary(100)
                 .add();
 
         try {
             flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000004"),forwardingObjective);
-        }catch (Exception e){
-            print(e.toString());
-        }
-
-    }
-
-    public void testInstallRule2(){
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(3));
-        TrafficTreatment trafficTreatment = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.portNumber("2"))
-                .build();
-        ForwardingObjective forwardingObjective = DefaultForwardingObjective.builder()
-                .withSelector(selectorBuilder.build())
-                .withTreatment(trafficTreatment)
-                .withPriority(11)  //数字越优先级越高
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .fromApp(appId)
-                .makeTemporary(0)
-                .makePermanent()
-                .add();
-
-        try {
-            flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000010"),forwardingObjective);
         }catch (Exception e){
             print(e.toString());
         }
