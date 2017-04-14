@@ -108,12 +108,11 @@ public class SegmentRoute implements SRService{
         //testHost();
         //testPair();
         //testLinks2Map();
-        installRules();
+        installRules("/home/snail/Applications/SR/segments1.xls");
     }
 
-    private void installRules(){
+    private void installRules(String inPath){
         jxl.Workbook readwb = null;
-        String inPath = "/home/snail/Applications/SR/segments3.xls";
         Map<Pair<Integer,Integer>,Integer> labelMap = new HashMap<Pair<Integer,Integer>,Integer>();
         try{
             InputStream instream = new FileInputStream(inPath);
@@ -156,8 +155,8 @@ public class SegmentRoute implements SRService{
             //获取路由器到主机的出口ID
             Map<Ip4Address,PortNumber> hostsMap = hostsMap();
 
-            //获取过渡路由器编号
-            int[] transitionRoutes = getTstRoutes(row[10]);
+            //获取过渡路由器编号,包括首位路由器
+            int[] transitionRoutes = getTstRoutes(row[10],row[2],row[NumberOfColumns(row)-1]);
 
             //获取源目的IP
             IpPrefix[] IPs = new IpPrefix[]{ipPrefix(row[0].getContents()),ipPrefix(row[1].getContents())};
@@ -167,16 +166,12 @@ public class SegmentRoute implements SRService{
             int[] path = getPath(row);
 
             //将路径分解为单个分段,如果过渡路由器的值为-1代表该路径只有一个分段
-            boolean isSingel = transitionRoutes.length == 1 && transitionRoutes[0] == -1;
-            List<List<Integer>> segments = path2segments(path,transitionRoutes,isSingel);
-
-
+            boolean isSingel = transitionRoutes.length == 2;
+            List<List<Integer>> segments = path2segments(path,transitionRoutes);
 
             //处理分段
             dealSegments(segments,isSingel,IPs,labels,linksMap,labelMap,transitionRoutes,hostsMap);
-
         }
-
         print("All flows added successfully!!");
     }
 
@@ -522,29 +517,19 @@ public class SegmentRoute implements SRService{
                               Map<Ip4Address,PortNumber> hostsMap){
         int label;
         int nextLabel;
-        int src = Integer.parseInt(IPs[0].address().getIp4Address().toString().split("\\.")[2]);
-        int dst = Integer.parseInt(IPs[1].address().getIp4Address().toString().split("\\.")[2]);
         if(isSingle){
             label = labelMap.get(new Pair<>(segments.get(0).get(0),segments.get(0).get(segments.get(0).size()-1)));
             dealSingleSegment(segments.get(0),IPs,labels,linksMap,label,hostsMap);
         }else{
-            label = labelMap.get(new Pair<>(segments.get(0).get(0),transitionRoutes[0]));
-            if(transitionRoutes.length==1){
-                nextLabel = labelMap.get(new Pair<>(transitionRoutes[0],dst));
-            }else{
-                nextLabel = labelMap.get(new Pair<>(transitionRoutes[0],transitionRoutes[1]));
-            }
+            label = labelMap.get(new Pair<>(transitionRoutes[0],transitionRoutes[1]));
+            nextLabel = labelMap.get(new Pair<>(transitionRoutes[1],transitionRoutes[2]));
             dealFirstSegment(segments.get(0),segments.get(1),IPs,labels,linksMap,label,nextLabel);
-            for (int i = 1; i < segments.size()-1; i++) {
-                label = labelMap.get(new Pair<>(transitionRoutes[i-1],transitionRoutes[i]));
-                if(transitionRoutes.length-1 == i){
-                    nextLabel = labelMap.get(new Pair<>(transitionRoutes[i],dst));
-                }else{
-                    nextLabel = labelMap.get(new Pair<>(transitionRoutes[i],transitionRoutes[i+1]));
-                }
+            for (int i = 1; i < segments.size() - 1; i++) {
+                label = labelMap.get(new Pair<>(transitionRoutes[i],transitionRoutes[i+1]));
+                nextLabel = labelMap.get(new Pair<>(transitionRoutes[i+1],transitionRoutes[i+2]));
                 dealMidSegment(segments.get(i),segments.get(i+1),linksMap,label,nextLabel);
             }
-            label = labelMap.get(new Pair<>(transitionRoutes[transitionRoutes.length-1],segments.get(segments.size()-1).get(segments.get(segments.size()-1).size()-1)));
+            label = labelMap.get(new Pair<>(transitionRoutes[transitionRoutes.length-2],transitionRoutes[transitionRoutes.length-1]));
             dealLastSegment(segments.get(segments.size()-1),linksMap,label,hostsMap,IPs);
         }
     }
@@ -565,12 +550,11 @@ public class SegmentRoute implements SRService{
 
     private void dealMidSegment(List<Integer> segment,List<Integer> nextSegment,Map<Pair<DeviceId,DeviceId>,long[]> linksMap,int label,int nextLabel){
         long portNum;
-        for (int i = 0; i < segment.size(); i++) {
+        for (int i = 1; i < segment.size(); i++) {
             if(i==segment.size()-1){
                 portNum = linksMap.get(new Pair<>(deviceID(segment.get(i)),deviceID(nextSegment.get(1))))[0];
                 installTailRules(label,nextLabel,segment.get(i),portNum);
             }else{
-                if(i==0) continue;
                 portNum = linksMap.get(new Pair<>(deviceID(segment.get(i)),deviceID(segment.get(i+1))))[0];
                 installMidRules(label,segment.get(i),portNum);
             }
@@ -579,11 +563,10 @@ public class SegmentRoute implements SRService{
 
     private void dealLastSegment(List<Integer> segment,Map<Pair<DeviceId,DeviceId>,long[]> linksMap,int label,Map<Ip4Address,PortNumber> hostsMap,IpPrefix[] IPs){
         long portNum;
-        for (int i = 0; i < segment.size(); i++) {
+        for (int i = 1; i < segment.size(); i++) {
             if(i==segment.size()-1){
                 installEgressRules(segment.get(i),label,hostsMap,IPs);
             }else{
-                if (i==0) continue;
                 portNum = linksMap.get(new Pair<>(deviceID(segment.get(i)),deviceID(segment.get(i+1))))[0];
                 installMidRules(label,segment.get(i),portNum);
             }
@@ -612,41 +595,45 @@ public class SegmentRoute implements SRService{
         return path;
     }
 
-    private int[] getTstRoutes(Cell cell){
+    private int[] getTstRoutes(Cell cell,Cell src,Cell dst){
         String[] transitionRoutesStr = cell.getContents().split(",");
-        int[] transitionRoutes = new int[transitionRoutesStr.length];
-        for (int j = 0; j < transitionRoutesStr.length; j++) {
-            transitionRoutes[j] = Integer.parseInt(transitionRoutesStr[j]);
+        if(transitionRoutesStr.length == 1 && Integer.parseInt(transitionRoutesStr[0]) == -1){
+            int[] transitionRoutes = new int[2];
+            transitionRoutes[0] = Integer.parseInt(src.getContents());
+            transitionRoutes[1] = Integer.parseInt(dst.getContents());
+            return transitionRoutes;
         }
+        int[] transitionRoutes = new int[transitionRoutesStr.length + 2];
+        transitionRoutes[0] = Integer.parseInt(src.getContents());
+        for (int j = 1; j < transitionRoutesStr.length + 1; j++) {
+            transitionRoutes[j] = Integer.parseInt(transitionRoutesStr[j-1]);
+        }
+        transitionRoutes[transitionRoutesStr.length + 1] = Integer.parseInt(dst.getContents());
         return transitionRoutes;
     }
 
     private int[] getLabels(IpPrefix[] IPs, Map<Pair<Integer,Integer>,Integer> labelMap , int[] transitionRoutes){
-        int[] labels = new int[transitionRoutes.length + 1];
-        int src = Integer.parseInt(IPs[0].address().getIp4Address().toString().split("\\.")[2]);
-        int dst = Integer.parseInt(IPs[1].address().getIp4Address().toString().split("\\.")[2]);
-        labels[0] = labelMap.get(new Pair<>(src,transitionRoutes[0]));
-        for (int i = 1; i < transitionRoutes.length; i++) {
-            labels[i] = labelMap.get(new Pair<>(transitionRoutes[i-1],transitionRoutes[i]));
+        int[] labels = new int[transitionRoutes.length - 1];
+        for (int i = 0; i < transitionRoutes.length - 1; i++) {
+            labels[i] = labelMap.get(new Pair<>(transitionRoutes[i],transitionRoutes[i+1]));
         }
-        labels[transitionRoutes.length] = labelMap.get(new Pair<>(transitionRoutes[transitionRoutes.length-1],dst));
         return labels;
     }
 
-    private List<List<Integer>> path2segments(int[] path,int[] transitionRoutes,boolean isSingel){
+    private List<List<Integer>> path2segments(int[] path,int[] transitionRoutes){
         List<List<Integer>> segments = new ArrayList<>();
         segments.add(new ArrayList<>());
         int nowSegment = 0;
-        int nowTrasRouteIndex = 0;
+        int nowTrasRouteIndex = 1;
         int nowTrasRoute;
         for (int i = 0; i < path.length; i++) {
             segments.get(nowSegment).add(path[i]);
-            if(nowTrasRouteIndex >= transitionRoutes.length){
+            if(nowTrasRouteIndex >= transitionRoutes.length - 1){
                 nowTrasRoute = -1;
             }else{
                 nowTrasRoute = transitionRoutes[nowTrasRouteIndex];
             }
-            if(!isSingel && path[i]== nowTrasRoute){
+            if(path[i]== nowTrasRoute){
                 segments.add(new ArrayList<>());
                 nowSegment++;
                 nowTrasRouteIndex++;
