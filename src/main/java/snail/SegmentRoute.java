@@ -570,6 +570,7 @@ public class SegmentRoute implements SRService{
                 portNum = linksMap.get(new Pair<>(deviceID(segment.get(i)),deviceID(nextSegment.get(1))))[0];
                 installTailRules(label,nextLabel,segment.get(i),portNum);
             }else{
+                if(i==0) continue;
                 portNum = linksMap.get(new Pair<>(deviceID(segment.get(i)),deviceID(segment.get(i+1))))[0];
                 installMidRules(label,segment.get(i),portNum);
             }
@@ -582,6 +583,7 @@ public class SegmentRoute implements SRService{
             if(i==segment.size()-1){
                 installEgressRules(segment.get(i),label,hostsMap,IPs);
             }else{
+                if (i==0) continue;
                 portNum = linksMap.get(new Pair<>(deviceID(segment.get(i)),deviceID(segment.get(i+1))))[0];
                 installMidRules(label,segment.get(i),portNum);
             }
