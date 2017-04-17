@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright JinxiuYang from UESTC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
     <groupId>snail</groupId>
     <artifactId>SR</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.0</version>
     <packaging>bundle</packaging>
 
     <description>ONOS OSGi bundle archetype</description>
