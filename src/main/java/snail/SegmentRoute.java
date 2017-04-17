@@ -82,7 +82,9 @@ public class SegmentRoute implements SRService{
     protected LinkService linkService;
 
     private ApplicationId appId;
-    private ApplicationId defaultAppId;
+
+    private final int priority = 10;
+    private final int timeout = 1000;
 
     @Activate
     protected void activate() {
@@ -108,7 +110,7 @@ public class SegmentRoute implements SRService{
         //testHost();
         //testPair();
         //testLinks2Map();
-        installRules("/home/snail/Applications/SR/segments1.xls");
+        installRules("/home/snail/Applications/SR/segments3.xls");
     }
 
     private void installRules(String inPath){
@@ -177,30 +179,26 @@ public class SegmentRoute implements SRService{
 
     private void installIngressRule(IpPrefix[] IPs,int[] labels,int deviceID,long portNum){
         //匹配,压入所有标签并转发
-        if(labels.length < 4){
-            TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-            selectorBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPSrc(IPs[0])
-                    .matchIPDst(IPs[1]);
-            TrafficTreatment.Builder trafficTreatment = DefaultTrafficTreatment.builder();
-            for (int i = 0; i < labels.length; i++) {
-                trafficTreatment.pushMpls().setMpls(MplsLabel.mplsLabel(labels[labels.length - 1 - i]));
-            }
-            trafficTreatment.setOutput(PortNumber.portNumber(portNum));
-
-            FlowRule flowRule = DefaultFlowRule.builder()
-                    .withSelector(selectorBuilder.build())
-                    .withTreatment(trafficTreatment.build())
-                    .forTable(0)
-                    .fromApp(appId)
-                    .forDevice(deviceID(deviceID))
-                    .makeTemporary(1000)
-                    .withPriority(11)
-                    .build();
-            flowRuleService.applyFlowRules(flowRule);
-        }else{
-
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPSrc(IPs[0])
+                .matchIPDst(IPs[1]);
+        TrafficTreatment.Builder trafficTreatment = DefaultTrafficTreatment.builder();
+        for (int i = 0; i < labels.length; i++) {
+            trafficTreatment.pushMpls().setMpls(MplsLabel.mplsLabel(labels[labels.length - 1 - i]));
         }
+        trafficTreatment.setOutput(PortNumber.portNumber(portNum));
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .withSelector(selectorBuilder.build())
+                .withTreatment(trafficTreatment.build())
+                .forTable(0)
+                .fromApp(appId)
+                .forDevice(deviceID(deviceID))
+                .makeTemporary(timeout)
+                .withPriority(priority)
+                .build();
+        flowRuleService.applyFlowRules(flowRule);
     }
 
     private void installMidRules(int label,int deviceID,long portNum){
@@ -217,8 +215,8 @@ public class SegmentRoute implements SRService{
                 .forTable(0)
                 .fromApp(appId)
                 .forDevice(deviceID(deviceID))
-                .makeTemporary(1000)
-                .withPriority(11)
+                .makeTemporary(timeout)
+                .withPriority(priority)
                 .build();
         flowRuleService.applyFlowRules(flowRule);
     }
@@ -238,8 +236,8 @@ public class SegmentRoute implements SRService{
                 .forTable(0)
                 .fromApp(appId)
                 .forDevice(deviceID(deviceID))
-                .makeTemporary(1000)
-                .withPriority(11)
+                .makeTemporary(timeout)
+                .withPriority(priority)
                 .build();
         flowRuleService.applyFlowRules(flowRule);
         //匹配,转发
@@ -255,8 +253,8 @@ public class SegmentRoute implements SRService{
                 .forTable(1)
                 .fromApp(appId)
                 .forDevice(deviceID(deviceID))
-                .makeTemporary(1000)
-                .withPriority(11)
+                .makeTemporary(timeout)
+                .withPriority(priority)
                 .build();
         flowRuleService.applyFlowRules(flowRule1);
     }
@@ -276,8 +274,8 @@ public class SegmentRoute implements SRService{
                 .forTable(0)
                 .fromApp(appId)
                 .forDevice(deviceID(deviceID))
-                .makeTemporary(1000)
-                .withPriority(11)
+                .makeTemporary(timeout)
+                .withPriority(priority)
                 .build();
         flowRuleService.applyFlowRules(flowRule);
         //匹配,转发
@@ -297,8 +295,8 @@ public class SegmentRoute implements SRService{
                 .forTable(1)
                 .fromApp(appId)
                 .forDevice(deviceID(deviceID))
-                .makeTemporary(1000)
-                .withPriority(11)
+                .makeTemporary(timeout)
+                .withPriority(priority)
                 .build();
         flowRuleService.applyFlowRules(flowRule1);
     }
@@ -342,7 +340,7 @@ public class SegmentRoute implements SRService{
         Iterator<Host> iterator = hosts.iterator();
         while (iterator.hasNext()) {
             try {
-                writeLoggerToFile("/home/snail/testLog/links", iterator.next().ipAddresses().iterator().next().getIp4Address().toString() + "\n");
+                writeLoggerToFile("/home/snail/testLog/links", iterator.next().ipAddresses().iterator().next().toIpPrefix().toString() + "\n");
             } catch (IOException e) {
                 print(e.toString());
             }
@@ -370,11 +368,7 @@ public class SegmentRoute implements SRService{
                 .makeTemporary(1000)
                 .add();
 
-        try {
-            flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000002"),forwardingObjective);
-        }catch (Exception e){
-            print(e.toString());
-        }
+        flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000002"),forwardingObjective);
 
     }
 
@@ -397,11 +391,7 @@ public class SegmentRoute implements SRService{
                 .makeTemporary(1000)
                 .add();
 
-        try {
-            flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000004"),forwardingObjective);
-        }catch (Exception e){
-            print(e.toString());
-        }
+        flowObjectiveService.forward(DeviceId.deviceId("of:0000000100000004"),forwardingObjective);
 
     }
 
@@ -427,8 +417,6 @@ public class SegmentRoute implements SRService{
                 .withPriority(10)
                 .build();
         flowRuleService.applyFlowRules(flowRule);
-
-
 
 
         TrafficSelector.Builder selectorBuilder1 = DefaultTrafficSelector.builder();
