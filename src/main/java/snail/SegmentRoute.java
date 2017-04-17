@@ -70,9 +70,6 @@ public class SegmentRoute implements SRService{
     protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected TopologyService topologyService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -105,10 +102,7 @@ public class SegmentRoute implements SRService{
         //testLinks();
         //testInstallRule();
         //testInstallRule1();
-        //testInstallRule4();
-        //testIterable();
         //testHost();
-        //testPair();
         //testLinks2Map();
         installRules("/home/snail/Applications/SR/segments4.xls");
     }
@@ -122,7 +116,7 @@ public class SegmentRoute implements SRService{
 
             // Sheet的下标是从0开始
             Sheet singelSegmentSheet = readwb.getSheet(0);
-            labelMap = dealSingelSegment(singelSegmentSheet);
+            labelMap = dealLabelsMap(singelSegmentSheet);
 
             Sheet pathSheet = readwb.getSheet(1);
             dealPath(pathSheet,labelMap);
@@ -134,7 +128,7 @@ public class SegmentRoute implements SRService{
     }
 
     //给每个分段分配一个MPLS Label值
-    private Map<Pair<Integer,Integer>,Integer> dealSingelSegment(Sheet sheet){
+    private Map<Pair<Integer,Integer>,Integer> dealLabelsMap(Sheet sheet){
         // 获取Sheet表中所包含的总行数
         int rows = NumberOfRows(sheet);
         Map<Pair<Integer,Integer>,Integer> labelMap = new HashMap<Pair<Integer,Integer>,Integer>();
@@ -151,13 +145,13 @@ public class SegmentRoute implements SRService{
         for(int i=1;i<rows;i++){
             Cell[] row = sheet.getRow(i);
 
-            //获取吓一跳出端口ID
+            //获取下一跳出出口ID
             Map<Pair<DeviceId,DeviceId>,long[]> linksMap = linksMap();
 
             //获取路由器到主机的出口ID
             Map<Ip4Address,PortNumber> hostsMap = hostsMap();
 
-            //获取过渡路由器编号,包括首位路由器
+            //获取过渡路由器编号,包括首尾路由器
             int[] transitionRoutes = getTstRoutes(row[10],row[2],row[NumberOfColumns(row)-1]);
 
             //获取源目的IP
@@ -304,7 +298,8 @@ public class SegmentRoute implements SRService{
         Iterable<Link> links = linkService.getLinks();
         Map<Pair<DeviceId,DeviceId>,long[]> linksMap = new HashMap<Pair<DeviceId,DeviceId>,long[]>();
         for(Link link:links){
-            linksMap.put(new Pair<>(link.src().deviceId(),link.dst().deviceId()), new long[]{link.src().port().toLong(),link.dst().port().toLong()});
+            linksMap.put(new Pair<>(link.src().deviceId(),link.dst().deviceId()),
+                         new long[]{link.src().port().toLong(),link.dst().port().toLong()});
         }
         return linksMap;
     }
@@ -322,7 +317,8 @@ public class SegmentRoute implements SRService{
     public void testLinks2Map(){
         Map<Pair<DeviceId,DeviceId>,long[]> linksMap = linksMap();
         for (Map.Entry<Pair<DeviceId,DeviceId>,long[]> entry : linksMap.entrySet()) {
-            System.out.println("Key = " + entry.getKey().getKey().toString() + "," + entry.getKey().getValue().toString() + ", Value = " + String.valueOf(entry.getValue()[0])+","+String.valueOf(entry.getValue()[1]));
+            System.out.println("Key = " + entry.getKey().getKey().toString() + "," + entry.getKey().getValue().toString() +
+                                       ", Value = " + String.valueOf(entry.getValue()[0])+","+String.valueOf(entry.getValue()[1]));
         }
     }
 
@@ -339,7 +335,8 @@ public class SegmentRoute implements SRService{
         Iterator<Host> iterator = hosts.iterator();
         while (iterator.hasNext()) {
             try {
-                writeLoggerToFile("/home/snail/testLog/links", iterator.next().ipAddresses().iterator().next().toIpPrefix().toString() + "\n");
+                writeLoggerToFile("/home/snail/testLog/links",
+                                  iterator.next().ipAddresses().iterator().next().toIpPrefix().toString() + "\n");
             } catch (IOException e) {
                 print(e.toString());
             }
@@ -514,12 +511,18 @@ public class SegmentRoute implements SRService{
                 nextLabel = labelMap.get(new Pair<>(transitionRoutes[i+1],transitionRoutes[i+2]));
                 dealMidSegment(segments.get(i),segments.get(i+1),linksMap,label,nextLabel);
             }
-            label = labelMap.get(new Pair<>(transitionRoutes[transitionRoutes.length-2],transitionRoutes[transitionRoutes.length-1]));
+            label = labelMap.get(new Pair<>(transitionRoutes[transitionRoutes.length-2],
+                                            transitionRoutes[transitionRoutes.length-1]));
             dealLastSegment(segments.get(segments.size()-1),linksMap,label,hostsMap,IPs);
         }
     }
 
-    private void dealFirstSegment(List<Integer> segment,List<Integer> nextSegment,IpPrefix[] IPs,int[] labels,Map<Pair<DeviceId,DeviceId>,long[]> linksMap,int nextLabel){
+    private void dealFirstSegment(List<Integer> segment,
+                                  List<Integer> nextSegment,
+                                  IpPrefix[] IPs,
+                                  int[] labels,
+                                  Map<Pair<DeviceId,DeviceId>,long[]> linksMap,
+                                  int nextLabel){
         long portNum = linksMap.get(new Pair<>(deviceID(segment.get(0)),deviceID(segment.get(1))))[0];
         installIngressRule(IPs,labels[0],segment.get(0),portNum);
         for (int i = 1; i < segment.size(); i++) {
@@ -533,7 +536,11 @@ public class SegmentRoute implements SRService{
         }
     }
 
-    private void dealMidSegment(List<Integer> segment,List<Integer> nextSegment,Map<Pair<DeviceId,DeviceId>,long[]> linksMap,int label,int nextLabel){
+    private void dealMidSegment(List<Integer> segment,
+                                List<Integer> nextSegment,
+                                Map<Pair<DeviceId,DeviceId>,long[]> linksMap,
+                                int label,
+                                int nextLabel){
         long portNum;
         for (int i = 1; i < segment.size(); i++) {
             if(i==segment.size()-1){
@@ -546,7 +553,11 @@ public class SegmentRoute implements SRService{
         }
     }
 
-    private void dealLastSegment(List<Integer> segment,Map<Pair<DeviceId,DeviceId>,long[]> linksMap,int label,Map<Ip4Address,PortNumber> hostsMap,IpPrefix[] IPs){
+    private void dealLastSegment(List<Integer> segment,
+                                 Map<Pair<DeviceId,DeviceId>,long[]> linksMap,
+                                 int label,
+                                 Map<Ip4Address,PortNumber> hostsMap,
+                                 IpPrefix[] IPs){
         long portNum;
         for (int i = 1; i < segment.size(); i++) {
             if(i==segment.size()-1){
@@ -558,7 +569,11 @@ public class SegmentRoute implements SRService{
         }
     }
 
-    private void dealSingleSegment(List<Integer> segment,IpPrefix[] IPs,int[] labels,Map<Pair<DeviceId,DeviceId>,long[]> linksMap,Map<Ip4Address,PortNumber> hostsMap){
+    private void dealSingleSegment(List<Integer> segment,
+                                   IpPrefix[] IPs,
+                                   int[] labels,
+                                   Map<Pair<DeviceId,DeviceId>,long[]> linksMap,
+                                   Map<Ip4Address,PortNumber> hostsMap){
         long portNum = linksMap.get(new Pair<>(deviceID(segment.get(0)),deviceID(segment.get(1))))[0];
         installIngressRule(IPs,labels[0],segment.get(0),portNum);
         for (int i = 1; i < segment.size(); i++) {
