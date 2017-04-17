@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2ac73698-bdc5-4dbc-9297-eba04af4b5ce" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.~lock.segments1.xls#" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/SR-1.0.0.jar" afterPath="$PROJECT_DIR$/target/SR-1.0.0.jar" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/SR-1.0.0.oar" afterPath="$PROJECT_DIR$/target/SR-1.0.0.oar" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/snail/SegmentRoute.class" afterPath="$PROJECT_DIR$/target/classes/snail/SegmentRoute.class" />
@@ -25,13 +24,13 @@
       <file leaf-file-name="SegmentRoute.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/snail/SegmentRoute.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="498">
+            <state relative-caret-position="462">
               <caret line="112" column="59" lean-forward="false" selection-start-line="112" selection-start-column="59" selection-end-line="112" selection-end-column="59" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#3908#3939#0" expanded="true" />
                 <element signature="e#4682#4713#0" expanded="true" />
-                <element signature="e#12379#12402#0" expanded="true" />
+                <element signature="e#12360#12383#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -615,7 +614,7 @@
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25815368" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2631288" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26644555" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Theme Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -994,13 +993,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/snail/SegmentRoute.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="498">
+        <state relative-caret-position="462">
           <caret line="112" column="59" lean-forward="false" selection-start-line="112" selection-start-column="59" selection-end-line="112" selection-end-column="59" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#3908#3939#0" expanded="true" />
             <element signature="e#4682#4713#0" expanded="true" />
-            <element signature="e#12379#12402#0" expanded="true" />
+            <element signature="e#12360#12383#0" expanded="true" />
           </folding>
         </state>
       </provider>
