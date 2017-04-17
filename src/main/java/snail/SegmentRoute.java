@@ -110,7 +110,7 @@ public class SegmentRoute implements SRService{
         //testHost();
         //testPair();
         //testLinks2Map();
-        installRules("/home/snail/Applications/SR/segments1.xls");
+        installRules("/home/snail/Applications/SR/segments4.xls");
     }
 
     private void installRules(String inPath){

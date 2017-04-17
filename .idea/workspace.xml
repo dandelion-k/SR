@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2ac73698-bdc5-4dbc-9297-eba04af4b5ce" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/SR-1.0.0.jar" afterPath="$PROJECT_DIR$/target/SR-1.0.0.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/SR-1.0.0.oar" afterPath="$PROJECT_DIR$/target/SR-1.0.0.oar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/snail/SegmentRoute.class" afterPath="$PROJECT_DIR$/target/classes/snail/SegmentRoute.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/oar/m2/snail/SR/1.0.0/SR-1.0.0.jar" afterPath="$PROJECT_DIR$/target/oar/m2/snail/SR/1.0.0/SR-1.0.0.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/snail/SegmentRoute.java" afterPath="$PROJECT_DIR$/src/main/java/snail/SegmentRoute.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/META-INF/MANIFEST.MF" afterPath="$PROJECT_DIR$/target/classes/META-INF/MANIFEST.MF" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
